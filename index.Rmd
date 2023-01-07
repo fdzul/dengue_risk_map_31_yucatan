@@ -1,0 +1,1050 @@
+---
+title: "Programa de Prevención y Control del Dengue de Yucatán"
+output: 
+  flexdashboard::flex_dashboard:
+      theme: united
+      social: ["twitter", "facebook", "menu", "github"]
+output_dir: libs      
+---
+
+```{r setup}
+
+# Step 1. load the library ####
+options(shiny.maxRequestSize=30*1024^2)
+library(formattable)
+library(tmap)
+library(rmarkdown)
+library(knitr)
+library(shiny)
+library(flexdashboard)
+library(plotly)
+library(boldenr)
+library(magrittr)
+library(leaflet)
+library(ggplot2)
+library(dplyr)
+library(stringr)
+library(dash)
+library(ECharts2Shiny)
+library(sf)
+
+# Step 3. load the functions ####
+if(as.vector(Sys.info()["sysname"]) == "Darwin"){
+    
+    # 1.6 hotspots cases
+    source("~/Dropbox/r_developments/r_new_functions/3.Functions/risk_agebs.R")
+    
+    source("~/Dropbox/r_developments/r_new_functions/3.Functions/risk_map.R")
+    
+    source("~/Dropbox/r_developments/r_new_functions/3.Functions/hotspots_map.R")
+    
+    # 1. 7 eggs hotspots ####
+    
+    source("~/Dropbox/r_developments/r_dashboards/github_pages/test_denv_dash_oax/3.Functions/eggs_hotspots_intensity_map_year.R")
+
+    
+} else if(as.vector(Sys.info()["sysname"]) == "Windows"){
+    # 1.1. dengue dataset
+    
+    # 1.5 ulv dataset
+    
+    # 1.6 hotspots
+
+
+    #Step  load the risk_ageb function ###
+    source('C:/Users/HOME/Dropbox/r_developments/r_dashboards/github_pages/test_dashboard/3.Functions/risk_agebs.R')
+
+    # Step  load the risk_map function ####
+    source("D:/OneDrive/proyects/hotspots/3.Functions/risk_map.R")
+
+    # Step  load the hotspots map ####
+    source("C:/Users/HOME/Dropbox/r_developments/r_dashboards/github_pages/test_dashboard/3.Functions/hotspots_map.R")
+    
+    # 1. 7 eggs hotspots ####
+    source("C:/Users/HOME/Dropbox/r_developments/r_dashboards/github_pages/test_denv_dash_oax/3.Functions/eggs_hotspots_intensity_map_year.R")
+    
+} else if(as.vector(Sys.info()["sysname"]) == "Linux"){
+    
+}
+
+
+
+# Step 5. Load the RData files ####
+if(as.vector(Sys.info()["sysname"]) == "Darwin"){
+    # load the blocks
+    load("~/OneDrive/automatic_read_ine_2010/8.RData/block_ine10_mx.RData")
+    
+    # load the dengue cases hotspots
+    load("~/Dropbox/hotspots_2021/8.RData/cases_hotspots_agebs19.RData")
+    hotspots <- cases_hotspots_agebs19 |>
+    sf::st_make_valid()
+    
+    # load the vector hotspots
+    load("~/OneDrive/proyects/hotspots_eggs/8.RData/31_yucatan/betas/31_yucatan_zinb1_betas.RData")
+    
+    
+} else if(as.vector(Sys.info()["sysname"]) == "Windows"){
+    
+    # load the blocks #####
+    load("D:/OneDrive/automatic_read_ine_2010/8.RData/block_ine10_mx.RData") 
+    
+    # Step 1. load the hotspots dengue cases ####
+   load("E:/backup/Dropbox_respaldo_2023_01_03/hotspots_2022/8.RData/cases_hotspots_agebs19.RData")
+    
+    cases_hotspots_agebs19 <- cases_hotspots_agebs19 |>
+    sf::st_make_valid()
+
+    
+    
+    # load the vector hotspots
+    load("D:/OneDrive/proyects/hotspots_eggs/8.RData/31_yucatan/betas/31_yucatan_zinb1_betas.RData")
+    
+} else if(as.vector(Sys.info()["sysname"]) == "Linux"){
+    
+}
+
+
+```
+
+# **Hotspots de la Transmisión de Dengue**
+
+## Column {.tabset}
+
+### [**Mérida**]{style="color:#990000"}
+
+<html>
+
+<head>
+
+```{=html}
+<style>
+body {
+  margin: 0px;
+}
+
+.wrapper {
+    display: grid;
+    grid-gap: 2px;
+    grid-template-columns: 280px 280px 280px 550px;
+    grid-template-rows: 165px 165px 165px 165px;
+    background-color: #fff;
+    color: "green";
+  }
+
+  .box {
+    background-color: #cfcfc4;
+    color: "green";
+    border-radius: 2px;
+    padding: 5px;
+    font-size: 100%;
+
+  }
+
+  .a {
+    grid-column: 1 / 4;
+    grid-row: 1 / 4;
+  }
+  .b {
+    grid-column: 4 ;
+    grid-row: 1 / 3;
+  }
+  .c {
+    grid-column: 4 ;
+    grid-row: 3 / 5 ;
+  }
+  .d {
+    grid-column: 3;
+    grid-row: 4;
+  }
+  .e {
+    grid-column: 2;
+    grid-row: 4;
+  }
+  .f {
+    grid-column: 1;
+    grid-row: 4;
+  }
+</style>
+```
+</head>
+
+<body>
+
+::: wrapper
+::: {.box .a}
+```{r hotspots_dengue_merida}
+hotspots_map(cve_ent = "31",
+             locality = "Mérida",
+             hotspots = cases_hotspots_agebs19,
+             static_map = FALSE)
+
+```
+:::
+
+::: {.box .b}
+```{r forest_plot_merida, dpi = 300, fig.height= 5,fig.width = 7,fig.align = "center", out.height='100%', out.width = '100%',fig.show = "hold"}
+ 
+# extract the locality
+
+loc <- rgeomex::extract_locality(cve_edo = "31",
+                                 locality = "Mérida")
+
+hotspots <- cases_hotspots_agebs19[loc,]
+# Logistic Regression
+glm.fit <- glm(hotspots_gi ~ DENV_2008 + DENV_2009 +  DENV_2010 + DENV_2011 + 
+                   DENV_2012 + DENV_2013  +  DENV_2014 + 
+                   DENV_2015  +  DENV_2016  +  DENV_2019 +
+                   DENV_2020 + DENV_2021,
+               data = hotspots, 
+               family = binomial)
+
+result <- parameters::model_parameters(glm.fit, 
+                                      exponentiate = TRUE)
+
+plotly::ggplotly(plot(result, size_text = 1))
+```
+:::
+
+::: {.box .c}
+```{r power_law_plot_merida,dpi = 300, warning=FALSE, fig.align = "center", out.width = '100%',out.height='100%',fig.show = "hold"}
+# Step 7. make the function por calculate the cumulative ####
+funcumsum <- function(x){
+    x$cumulative_n <- cumsum(x$n_cases)
+    x$perc_cumsum_n <- round((cumsum(x$n_cases)/sum(x$n_cases))*100, digits = 1)
+    #x$cumulative_ha <- cumsum(x$ha)
+    #x$perc_cumsum_ha <- round((cumsum(x$ha)/sum(x$ha))*100, digits = 1)
+    x$id <- 1
+    x$id_cumsum <- cumsum(x$id)
+    x$id_perc_cum <- round((cumsum(x$id)/nrow(x))*100, digits = 1)
+    x
+}
+# step 8.
+data_pareto <- hotspots   |>
+    # sf::st_drop_geometry()  |>
+    # dplyr::mutate(n_cases = rowSums(dplyr::select(., dplyr::starts_with("DENV"))),
+    #              loc = "locality")
+    #dplyr::mutate(n_cases = rowSums(dplyr::across(DENV_2008:DENV_2021)),
+    #              loc = "locality")  |>
+    dplyr::mutate(n_cases = rowSums(dplyr::across(dplyr::starts_with("DENV"))),
+                  loc = "locality") |>
+    
+    dplyr::select(loc, n_cases, hotspots_gi)  |>
+    dplyr::arrange(loc, desc(hotspots_gi), desc(n_cases))  |>
+    dplyr::group_by(loc)  |>
+    tidyr::nest()  |>
+    dplyr::mutate(pareto_cases = purrr::map(data,
+                                            funcumsum))  |>
+    dplyr::select(-data)  |>
+    tidyr::unnest(cols = c(pareto_cases))
+
+# step 4. visualization of pareto rules 
+plotly::ggplotly(denhotspots::power_law_plot(x = data_pareto))  |> plotly::layout(showlegend = FALSE)
+
+```
+:::
+
+::: {.box .d}
+```{r gauge_blocks_merida,fig.align = "center", out.height='100%', out.width = '100%', fig.width= 1.5, fig.height=1}
+y_hot <- hotspots |>dplyr::filter(hotspots_gi == 1)
+centroid <- rgeomex::blocks_ine20_mx_centroid |>
+  sf::st_as_sf(coords = c("x", "y"), crs = 4326)
+b_loc <- centroid[hotspots, ]
+b_hot <- b_loc[y_hot, ]
+flexdashboard::gauge(round((nrow(b_hot)/nrow(b_loc))*100, digits = 1),
+      min = 0, max = 100, 
+      symbol = '%', 
+      label = "Manzanas",
+      flexdashboard::gaugeSectors(success = c(0, 30), 
+                                  warning = c(31, 50), 
+                                  danger = c(51, 100),
+                                  colors = c("success", "warning","danger")))
+```
+:::
+
+::: {.box .e}
+```{r gauge_AGEB_merida, fig.align = "center", out.height='100%', out.width = '100%'}
+
+y <- hotspots  |>
+    sf::st_drop_geometry() |>
+     dplyr::mutate(n_cases = rowSums(dplyr::across(dplyr::starts_with("DENV"))),
+                  loc = "locality") |>
+    dplyr::select(loc, n_cases, hotspots_gi) 
+y_hot <- y |>dplyr::filter(hotspots_gi == 1)
+  
+flexdashboard::gauge(round((nrow(y_hot)/nrow(y))*100, digits = 1),
+      min = 0, max = 100, 
+      symbol = '%', 
+      label = "AGEBs",
+      flexdashboard::gaugeSectors(success = c(0, 30), 
+                                  warning = c(31, 50), 
+                                  danger = c(51, 100),
+                                  colors = c("success", "warning","danger")))
+```
+:::
+
+::: {.box .f}
+```{r gauge_casos_merida, out.height='90%', out.width = '90%', fig.align = "center"}
+
+y <- hotspots  |>
+    sf::st_drop_geometry() |>
+      dplyr::mutate(n_cases = rowSums(dplyr::across(dplyr::starts_with("DENV"))),
+                  loc = "locality") |>
+    dplyr::select(loc, n_cases, hotspots_gi) 
+y_hot <- y |>dplyr::filter(hotspots_gi == 1)
+
+flexdashboard::gauge(round((sum(y_hot$n_cases)/sum(y$n_cases))*100, digits = 1),
+      min = 0, max = 100, 
+      symbol = '%', 
+      label = "Casos de Dengue",
+      flexdashboard::gaugeSectors(success = c(11, 100), 
+                   warning = c(6, 10), 
+                   danger = c(0, 5),
+                   colors = c("success", "warning","danger"))
+      )
+```
+:::
+:::
+
+</body>
+
+</html>
+
+### [**Valladolid**]{style="color:#990000"}
+
+<html>
+
+<head>
+
+```{=html}
+<style>
+body {
+  margin: 0px;
+}
+
+.wrapper {
+    display: grid;
+    grid-gap: 2px;
+    grid-template-columns: 280px 280px 280px 550px;
+    grid-template-rows: 165px 165px 165px 165px;
+    background-color: #fff;
+    color: "green";
+  }
+
+  .box {
+    background-color: #cfcfc4;
+    color: "green";
+    border-radius: 2px;
+    padding: 5px;
+    font-size: 100%;
+
+  }
+
+  .a {
+    grid-column: 1 / 4;
+    grid-row: 1 / 4;
+  }
+  .b {
+    grid-column: 4 ;
+    grid-row: 1 / 3;
+  }
+  .c {
+    grid-column: 4 ;
+    grid-row: 3 / 5 ;
+  }
+  .d {
+    grid-column: 3;
+    grid-row: 4;
+  }
+  .e {
+    grid-column: 2;
+    grid-row: 4;
+  }
+  .f {
+    grid-column: 1;
+    grid-row: 4;
+  }
+</style>
+```
+</head>
+
+<body>
+
+::: wrapper
+::: {.box .a}
+```{r hotspots_dengue_valladolid}
+hotspots_map(cve_ent = "31",
+             locality = "Valladolid",
+             hotspots = cases_hotspots_agebs19,
+             static_map = FALSE)
+
+```
+:::
+
+::: {.box .b}
+```{r forest_plot_valladolid, dpi = 300, fig.height= 5,fig.width = 7,fig.align = "center", out.height='100%', out.width = '100%',fig.show = "hold"}
+ 
+# extract the locality
+loc <- rgeomex::extract_locality(cve_edo = "31",
+                                 locality = "Valladolid")
+
+hotspots <- cases_hotspots_agebs19[loc,]
+# Logistic Regression
+glm.fit <- glm(hotspots_gi ~ DENV_2008 + DENV_2009 +  DENV_2010  + 
+                   DENV_2012 + DENV_2013  +  DENV_2014 + 
+                   DENV_2015  + DENV_2018+ DENV_2019 +
+                   DENV_2020,
+               data = hotspots, 
+               family = binomial)
+
+result <- parameters::model_parameters(glm.fit, 
+                                      exponentiate = TRUE)
+
+plotly::ggplotly(plot(result, size_text = 1))
+```
+:::
+
+::: {.box .c}
+```{r power_law_plot_valladolid,dpi = 300, warning=FALSE, fig.align = "center", out.width = '100%',out.height='100%',fig.show = "hold"}
+# Step 7. make the function por calculate the cumulative ####
+funcumsum <- function(x){
+    x$cumulative_n <- cumsum(x$n_cases)
+    x$perc_cumsum_n <- round((cumsum(x$n_cases)/sum(x$n_cases))*100, digits = 1)
+    #x$cumulative_ha <- cumsum(x$ha)
+    #x$perc_cumsum_ha <- round((cumsum(x$ha)/sum(x$ha))*100, digits = 1)
+    x$id <- 1
+    x$id_cumsum <- cumsum(x$id)
+    x$id_perc_cum <- round((cumsum(x$id)/nrow(x))*100, digits = 1)
+    x
+}
+# step 8.
+data_pareto <- hotspots   |>
+    # sf::st_drop_geometry()  |>
+    # dplyr::mutate(n_cases = rowSums(dplyr::select(., dplyr::starts_with("DENV"))),
+    #              loc = "locality")
+    #dplyr::mutate(n_cases = rowSums(dplyr::across(DENV_2008:DENV_2021)),
+    #              loc = "locality")  |>
+    dplyr::mutate(n_cases = rowSums(dplyr::across(dplyr::starts_with("DENV"))),
+                  loc = "locality") |>
+    
+    dplyr::select(loc, n_cases, hotspots_gi)  |>
+    dplyr::arrange(loc, desc(hotspots_gi), desc(n_cases))  |>
+    dplyr::group_by(loc)  |>
+    tidyr::nest()  |>
+    dplyr::mutate(pareto_cases = purrr::map(data,
+                                            funcumsum))  |>
+    dplyr::select(-data)  |>
+    tidyr::unnest(cols = c(pareto_cases))
+
+
+# step 4. visualization of pareto rules 
+plotly::ggplotly(denhotspots::power_law_plot(x = data_pareto))  |> plotly::layout(showlegend = FALSE)
+
+```
+:::
+
+::: {.box .d}
+```{r gauge_blocks_valladolid,fig.align = "center", out.height='100%', out.width = '100%', fig.width= 1.5, fig.height=1}
+y_hot <- hotspots |>dplyr::filter(hotspots_gi == 1)
+centroid <- rgeomex::blocks_ine20_mx_centroid |>
+  sf::st_as_sf(coords = c("x", "y"), crs = 4326)
+b_loc <- centroid[hotspots, ]
+b_hot <- b_loc[y_hot, ]
+flexdashboard::gauge(round((nrow(b_hot)/nrow(b_loc))*100, digits = 1),
+      min = 0, max = 100, 
+      symbol = '%', 
+      label = "Manzanas",
+      flexdashboard::gaugeSectors(success = c(0, 30), 
+                                  warning = c(31, 50), 
+                                  danger = c(51, 100),
+                                  colors = c("success", "warning","danger")))
+```
+:::
+
+::: {.box .e}
+```{r gauge_AGEB_valladolid, fig.align = "center", out.height='100%', out.width = '100%'}
+
+y <- hotspots  |>
+    sf::st_drop_geometry() |>
+     dplyr::mutate(n_cases = rowSums(dplyr::across(dplyr::starts_with("DENV"))),
+                  loc = "locality") |>
+    dplyr::select(loc, n_cases, hotspots_gi) 
+y_hot <- y |>dplyr::filter(hotspots_gi == 1)
+  
+flexdashboard::gauge(round((nrow(y_hot)/nrow(y))*100, digits = 1),
+      min = 0, max = 100, 
+      symbol = '%', 
+      label = "AGEBs",
+      flexdashboard::gaugeSectors(success = c(0, 30), 
+                                  warning = c(31, 50), 
+                                  danger = c(51, 100),
+                                  colors = c("success", "warning","danger")))
+```
+:::
+
+::: {.box .f}
+```{r gauge_casos_valladolid, out.height='90%', out.width = '90%', fig.align = "center"}
+
+y <- hotspots  |>
+    sf::st_drop_geometry() |>
+     dplyr::mutate(n_cases = rowSums(dplyr::across(dplyr::starts_with("DENV"))),
+                  loc = "locality") |>
+    dplyr::select(loc, n_cases, hotspots_gi) 
+y_hot <- y |>dplyr::filter(hotspots_gi == 1)
+
+flexdashboard::gauge(round((sum(y_hot$n_cases)/sum(y$n_cases))*100, digits = 1),
+      min = 0, max = 100, 
+      symbol = '%', 
+      label = "Casos de Dengue",
+      flexdashboard::gaugeSectors(success = c(11, 100), 
+                   warning = c(6, 10), 
+                   danger = c(0, 5),
+                   colors = c("success", "warning","danger"))
+      )
+```
+:::
+:::
+
+</body>
+
+</html>
+
+### [**Tizimín**]{style="color:#990000"}
+
+<html>
+
+<head>
+
+```{=html}
+<style>
+body {
+  margin: 0px;
+}
+
+.wrapper {
+    display: grid;
+    grid-gap: 2px;
+    grid-template-columns: 280px 280px 280px 550px;
+    grid-template-rows: 165px 165px 165px 165px;
+    background-color: #fff;
+    color: "green";
+  }
+
+  .box {
+    background-color: #cfcfc4;
+    color: "green";
+    border-radius: 2px;
+    padding: 5px;
+    font-size: 100%;
+
+  }
+
+  .a {
+    grid-column: 1 / 4;
+    grid-row: 1 / 4;
+  }
+  .b {
+    grid-column: 4 ;
+    grid-row: 1 / 3;
+  }
+  .c {
+    grid-column: 4 ;
+    grid-row: 3 / 5 ;
+  }
+  .d {
+    grid-column: 3;
+    grid-row: 4;
+  }
+  .e {
+    grid-column: 2;
+    grid-row: 4;
+  }
+  .f {
+    grid-column: 1;
+    grid-row: 4;
+  }
+</style>
+```
+</head>
+
+<body>
+
+::: wrapper
+::: {.box .a}
+```{r hotspots_dengue_tizimin}
+hotspots_map(cve_ent = "31",
+             locality = "Tizimín",
+             hotspots = cases_hotspots_agebs19,
+             static_map = FALSE)
+
+```
+:::
+
+::: {.box .b}
+```{r forest_plot_tizimin, dpi = 300, fig.height= 5,fig.width = 7,fig.align = "center", out.height='100%', out.width = '100%',fig.show = "hold"}
+ 
+# extract the locality
+
+loc <- rgeomex::extract_locality(cve_edo = "31",
+                                 locality = "Tizimin")
+
+hotspots <- cases_hotspots_agebs19[loc,]
+# Logistic Regression
+glm.fit <- glm(hotspots_gi ~  DENV_2009 +  DENV_2010 + DENV_2011 + 
+                   DENV_2012 + DENV_2013  +  
+                   DENV_2015  +  DENV_2016  + DENV_2018 + DENV_2019,
+               data = hotspots, 
+               family = binomial)
+
+result <- parameters::model_parameters(glm.fit, 
+                                      exponentiate = TRUE)
+
+plotly::ggplotly(plot(result, size_text = 1))
+```
+:::
+
+::: {.box .c}
+```{r power_law_plot_tizimin,dpi = 300, warning=FALSE, fig.align = "center", out.width = '100%',out.height='100%',fig.show = "hold"}
+# Step 7. make the function por calculate the cumulative ####
+funcumsum <- function(x){
+    x$cumulative_n <- cumsum(x$n_cases)
+    x$perc_cumsum_n <- round((cumsum(x$n_cases)/sum(x$n_cases))*100, digits = 1)
+    #x$cumulative_ha <- cumsum(x$ha)
+    #x$perc_cumsum_ha <- round((cumsum(x$ha)/sum(x$ha))*100, digits = 1)
+    x$id <- 1
+    x$id_cumsum <- cumsum(x$id)
+    x$id_perc_cum <- round((cumsum(x$id)/nrow(x))*100, digits = 1)
+    x
+}
+# step 8.
+data_pareto <- hotspots   |>
+    # sf::st_drop_geometry()  |>
+    # dplyr::mutate(n_cases = rowSums(dplyr::select(., dplyr::starts_with("DENV"))),
+    #              loc = "locality")
+    #dplyr::mutate(n_cases = rowSums(dplyr::across(DENV_2008:DENV_2021)),
+    #              loc = "locality")  |>
+    dplyr::mutate(n_cases = rowSums(dplyr::across(dplyr::starts_with("DENV"))),
+                  loc = "locality") |>
+    
+    dplyr::select(loc, n_cases, hotspots_gi)  |>
+    dplyr::arrange(loc, desc(hotspots_gi), desc(n_cases))  |>
+    dplyr::group_by(loc)  |>
+    tidyr::nest()  |>
+    dplyr::mutate(pareto_cases = purrr::map(data,
+                                            funcumsum))  |>
+    dplyr::select(-data)  |>
+    tidyr::unnest(cols = c(pareto_cases))
+
+
+# step 4. visualization of pareto rules 
+plotly::ggplotly(denhotspots::power_law_plot(x = data_pareto))  |> plotly::layout(showlegend = FALSE)
+
+```
+:::
+
+::: {.box .d}
+```{r gauge_blocks_tizimin,fig.align = "center", out.height='100%', out.width = '100%', fig.width= 1.5, fig.height=1}
+y_hot <- hotspots |>dplyr::filter(hotspots_gi == 1)
+centroid <- rgeomex::blocks_ine20_mx_centroid |>
+  sf::st_as_sf(coords = c("x", "y"), crs = 4326)
+b_loc <- centroid[hotspots, ]
+b_hot <- b_loc[y_hot, ]
+flexdashboard::gauge(round((nrow(b_hot)/nrow(b_loc))*100, digits = 1),
+      min = 0, max = 100, 
+      symbol = '%', 
+      label = "Manzanas",
+      flexdashboard::gaugeSectors(success = c(0, 30), 
+                                  warning = c(31, 50), 
+                                  danger = c(51, 100),
+                                  colors = c("success", "warning","danger")))
+```
+:::
+
+::: {.box .e}
+```{r gauge_AGEB_tizimin, fig.align = "center", out.height='100%', out.width = '100%'}
+
+y <- hotspots  |>
+    sf::st_drop_geometry() |>
+     dplyr::mutate(n_cases = rowSums(dplyr::across(dplyr::starts_with("DENV"))),
+                  loc = "locality") |>
+    dplyr::select(loc, n_cases, hotspots_gi) 
+y_hot <- y |>dplyr::filter(hotspots_gi == 1)
+  
+flexdashboard::gauge(round((nrow(y_hot)/nrow(y))*100, digits = 1),
+      min = 0, max = 100, 
+      symbol = '%', 
+      label = "AGEBs",
+      flexdashboard::gaugeSectors(success = c(0, 30), 
+                                  warning = c(31, 50), 
+                                  danger = c(51, 100),
+                                  colors = c("success", "warning","danger")))
+```
+:::
+
+::: {.box .f}
+```{r gauge_casos_tizimin, out.height='90%', out.width = '90%', fig.align = "center"}
+
+y <- hotspots  |>
+    sf::st_drop_geometry() |>
+      dplyr::mutate(n_cases = rowSums(dplyr::across(dplyr::starts_with("DENV"))),
+                  loc = "locality") |>
+    dplyr::select(loc, n_cases, hotspots_gi) 
+y_hot <- y |>dplyr::filter(hotspots_gi == 1)
+
+flexdashboard::gauge(round((sum(y_hot$n_cases)/sum(y$n_cases))*100, digits = 1),
+      min = 0, max = 100, 
+      symbol = '%', 
+      label = "Casos de Dengue",
+      flexdashboard::gaugeSectors(success = c(11, 100), 
+                   warning = c(6, 10), 
+                   danger = c(0, 5),
+                   colors = c("success", "warning","danger"))
+      )
+```
+:::
+:::
+
+</body>
+
+</html>
+
+### [**Ticul**]{style="color:#990000"}
+
+<html>
+
+<head>
+
+```{=html}
+<style>
+body {
+  margin: 0px;
+}
+
+.wrapper {
+    display: grid;
+    grid-gap: 2px;
+    grid-template-columns: 280px 280px 280px 550px;
+    grid-template-rows: 165px 165px 165px 165px;
+    background-color: #fff;
+    color: "green";
+  }
+
+  .box {
+    background-color: #cfcfc4;
+    color: "green";
+    border-radius: 2px;
+    padding: 5px;
+    font-size: 100%;
+
+  }
+
+  .a {
+    grid-column: 1 / 4;
+    grid-row: 1 / 4;
+  }
+  .b {
+    grid-column: 4 ;
+    grid-row: 1 / 3;
+  }
+  .c {
+    grid-column: 4 ;
+    grid-row: 3 / 5 ;
+  }
+  .d {
+    grid-column: 3;
+    grid-row: 4;
+  }
+  .e {
+    grid-column: 2;
+    grid-row: 4;
+  }
+  .f {
+    grid-column: 1;
+    grid-row: 4;
+  }
+</style>
+```
+</head>
+
+<body>
+
+::: wrapper
+::: {.box .a}
+```{r hotspots_dengue_ticul}
+hotspots_map(cve_ent = "31",
+             locality = "Ticul",
+             hotspots = cases_hotspots_agebs19,
+             static_map = FALSE)
+
+```
+:::
+
+::: {.box .b}
+```{r forest_plot_ticul, dpi = 300, fig.height= 5,fig.width = 7,fig.align = "center", out.height='100%', out.width = '100%',fig.show = "hold"}
+ 
+# extract the locality
+
+loc <- rgeomex::extract_locality(cve_edo = "31",
+                                 locality = "Ticul")
+
+hotspots <- cases_hotspots_agebs19[loc,]
+# Logistic Regression
+glm.fit <- glm(hotspots_gi ~  DENV_2009 +  DENV_2010 + DENV_2011 + 
+                   DENV_2012 + DENV_2013  +  DENV_2014 +
+                   DENV_2016  + DENV_2018 + DENV_2019 + DENV_2020,
+               data = hotspots, 
+               family = binomial)
+
+result <- parameters::model_parameters(glm.fit, 
+                                      exponentiate = TRUE)
+
+plotly::ggplotly(plot(result, size_text = 1))
+```
+:::
+
+::: {.box .c}
+```{r power_law_plot_ticul,dpi = 300, warning=FALSE, fig.align = "center", out.width = '100%',out.height='100%',fig.show = "hold"}
+# Step 7. make the function por calculate the cumulative ####
+funcumsum <- function(x){
+    x$cumulative_n <- cumsum(x$n_cases)
+    x$perc_cumsum_n <- round((cumsum(x$n_cases)/sum(x$n_cases))*100, digits = 1)
+    #x$cumulative_ha <- cumsum(x$ha)
+    #x$perc_cumsum_ha <- round((cumsum(x$ha)/sum(x$ha))*100, digits = 1)
+    x$id <- 1
+    x$id_cumsum <- cumsum(x$id)
+    x$id_perc_cum <- round((cumsum(x$id)/nrow(x))*100, digits = 1)
+    x
+}
+# step 8.
+data_pareto <- hotspots   |>
+    # sf::st_drop_geometry()  |>
+    # dplyr::mutate(n_cases = rowSums(dplyr::select(., dplyr::starts_with("DENV"))),
+    #              loc = "locality")
+    #dplyr::mutate(n_cases = rowSums(dplyr::across(DENV_2008:DENV_2021)),
+    #              loc = "locality")  |>
+    dplyr::mutate(n_cases = rowSums(dplyr::across(dplyr::starts_with("DENV"))),
+                  loc = "locality") |>
+    
+    dplyr::select(loc, n_cases, hotspots_gi)  |>
+    dplyr::arrange(loc, desc(hotspots_gi), desc(n_cases))  |>
+    dplyr::group_by(loc)  |>
+    tidyr::nest()  |>
+    dplyr::mutate(pareto_cases = purrr::map(data,
+                                            funcumsum))  |>
+    dplyr::select(-data)  |>
+    tidyr::unnest(cols = c(pareto_cases))
+
+
+# step 4. visualization of pareto rules 
+plotly::ggplotly(denhotspots::power_law_plot(x = data_pareto))  |> plotly::layout(showlegend = FALSE)
+
+```
+:::
+
+::: {.box .d}
+```{r gauge_blocks_ticul,fig.align = "center", out.height='100%', out.width = '100%', fig.width= 1.5, fig.height=1}
+y_hot <- hotspots |>dplyr::filter(hotspots_gi == 1)
+centroid <- rgeomex::blocks_ine20_mx_centroid |>
+  sf::st_as_sf(coords = c("x", "y"), crs = 4326)
+b_loc <- centroid[hotspots, ]
+b_hot <- b_loc[y_hot, ]
+flexdashboard::gauge(round((nrow(b_hot)/nrow(b_loc))*100, digits = 1),
+      min = 0, max = 100, 
+      symbol = '%', 
+      label = "Manzanas",
+      flexdashboard::gaugeSectors(success = c(0, 30), 
+                                  warning = c(31, 50), 
+                                  danger = c(51, 100),
+                                  colors = c("success", "warning","danger")))
+```
+:::
+
+::: {.box .e}
+```{r gauge_AGEB_ticul, fig.align = "center", out.height='100%', out.width = '100%'}
+
+y <- hotspots  |>
+    sf::st_drop_geometry() |>
+     dplyr::mutate(n_cases = rowSums(dplyr::across(dplyr::starts_with("DENV"))),
+                  loc = "locality") |>
+    dplyr::select(loc, n_cases, hotspots_gi) 
+y_hot <- y |>dplyr::filter(hotspots_gi == 1)
+  
+flexdashboard::gauge(round((nrow(y_hot)/nrow(y))*100, digits = 1),
+      min = 0, max = 100, 
+      symbol = '%', 
+      label = "AGEBs",
+      flexdashboard::gaugeSectors(success = c(0, 30), 
+                                  warning = c(31, 50), 
+                                  danger = c(51, 100),
+                                  colors = c("success", "warning","danger")))
+```
+:::
+
+::: {.box .f}
+```{r gauge_casos_ticul, out.height='90%', out.width = '90%', fig.align = "center"}
+
+y <- hotspots  |>
+    sf::st_drop_geometry() |>
+     dplyr::mutate(n_cases = rowSums(dplyr::across(dplyr::starts_with("DENV"))),
+                  loc = "locality") |>
+    dplyr::select(loc, n_cases, hotspots_gi) 
+y_hot <- y |>dplyr::filter(hotspots_gi == 1)
+
+flexdashboard::gauge(round((sum(y_hot$n_cases)/sum(y$n_cases))*100, digits = 1),
+      min = 0, max = 100, 
+      symbol = '%', 
+      label = "Casos de Dengue",
+      flexdashboard::gaugeSectors(success = c(11, 100), 
+                   warning = c(6, 10), 
+                   danger = c(0, 5),
+                   colors = c("success", "warning","danger"))
+      )
+```
+:::
+:::
+
+</body>
+
+</html>
+
+# **Hotspots del Vector del Dengue**
+
+## Column {.tabset}
+
+### [**Mérida**]{style="color:#990000"}
+
+```{r vector_hotspots_merida, dpi = 300, warning=FALSE, message=FALSE}
+eggs_hotspots_intensity_map_year(betas = betas_31_yucatan,
+                                 locality = "Mérida",
+                                 cve_ent = "31",
+                                 palette = rcartocolor::carto_pal,
+                                 name = "SunsetDark")
+```
+
+### [**Hunucmá**]{style="color:#990000"}
+
+```{r vector_hotspots_hunucma, dpi = 300, warning=FALSE, message=FALSE}
+eggs_hotspots_intensity_map_year(betas = betas_31_yucatan,
+                                 locality = "Hunucma",
+                                 cve_ent = "31",
+                                 palette = rcartocolor::carto_pal,
+                                 name = "SunsetDark")
+```
+
+### [**Progreso**]{style="color:#990000"}
+
+```{r vector_hotspots_propreso, dpi = 300, warning=FALSE, message=FALSE}
+eggs_hotspots_intensity_map_year(betas = betas_31_yucatan,
+                                 locality = "Progreso",
+                                 cve_ent = "31",
+                                 palette = rcartocolor::carto_pal,
+                                 name = "SunsetDark")
+```
+
+### [**Motul**]{style="color:#990000"}
+
+```{r vector_hotspots_motul, dpi = 300, warning=FALSE, message=FALSE, error=FALSE}
+
+eggs_hotspots_intensity_map_year(betas = betas_31_yucatan,
+                                 locality = "Motul de Carrillo Puerto",
+                                 cve_ent = "31",
+                                 palette = rcartocolor::carto_pal,
+                                 name = "SunsetDark")
+```
+
+### [**Valladolid**]{style="color:#990000"}
+
+```{r vector_hotspots_valladolid, dpi = 300, warning=FALSE, message=FALSE}
+eggs_hotspots_intensity_map_year(betas = betas_31_yucatan,
+                                 locality = "Valladolid",
+                                 cve_ent = "31",
+                                 palette = rcartocolor::carto_pal,
+                                 name = "SunsetDark")
+```
+
+### [**Tizimin**]{style="color:#990000"}
+
+```{r vector_hotspots_tizimin, dpi = 300, warning=FALSE, message=FALSE}
+eggs_hotspots_intensity_map_year(betas = betas_31_yucatan,
+                                 locality = "Tizimin",
+                                 cve_ent = "31",
+                                 palette = rcartocolor::carto_pal,
+                                 name = "SunsetDark")
+```
+
+### [**Ticul**]{style="color:#990000"}
+
+```{r vector_hotspots_ticul, dpi = 300, warning=FALSE, message=FALSE}
+eggs_hotspots_intensity_map_year(betas = betas_31_yucatan,
+                                 locality = "Ticul",
+                                 cve_ent = "31",
+                                 palette = rcartocolor::carto_pal,
+                                 name = "SunsetDark")
+```
+
+### [**Tekax**]{style="color:#990000"}
+
+```{r vector_hotspots_tekax, dpi = 300, warning=FALSE, message=FALSE}
+eggs_hotspots_intensity_map_year(betas = betas_31_yucatan,
+                                 locality = "Tekax de Alvaro Obregon",
+                                 cve_ent = "31",
+                                 palette = rcartocolor::carto_pal,
+                                 name = "SunsetDark")
+```
+
+### [**Peto**]{style="color:#990000"}
+
+```{r vector_hotspots_peto, dpi = 300, warning=FALSE, message=FALSE}
+eggs_hotspots_intensity_map_year(betas = betas_31_yucatan,
+                                 locality = "Peto",
+                                 cve_ent = "31",
+                                 palette = rcartocolor::carto_pal,
+                                 name = "SunsetDark")
+```
+
+# **Dengue Risk Maps**
+
+## Column {.tabset}
+
+### [**Mérida**]{style="color:#7d9029"}
+
+```{r, risk_map_merida, echo=FALSE}
+risk <- risk_agebs(spde_model = betas_31_yucatan,
+                          hotspots = cases_hotspots_agebs19,
+                          locality = "Mérida",
+                          cve_ent = "31",
+                          intensity_perc = 25)
+risk_map(risk = risk, staticmap = FALSE)
+```
+
+### [**Valladolid**]{style="color:#7d9029"}
+
+```{r, risk_map_valladolid, echo=FALSE}
+risk <- risk_agebs(spde_model = betas_31_yucatan,
+                          hotspots = cases_hotspots_agebs19,
+                          locality = "Valladolid",
+                          cve_ent = "31",
+                          intensity_perc = 25)
+risk_map(risk = risk, staticmap = FALSE)
+```
+
+### [**Tizimín**]{style="color:#7d9029"}
+
+```{r, risk_map_tizimin, echo=FALSE}
+risk <- risk_agebs(spde_model = betas_31_yucatan,
+                          hotspots = cases_hotspots_agebs19,
+                          locality = "Tizimín",
+                          cve_ent = "31",
+                          intensity_perc = 25)
+risk_map(risk = risk, staticmap = FALSE)
+```
+
+### [**Ticul**]{style="color:#7d9029"}
+
+```{r, risk_map_ticul, echo=FALSE}
+risk <- risk_agebs(spde_model = betas_31_yucatan,
+                          hotspots = cases_hotspots_agebs19,
+                          locality = "Ticul",
+                          cve_ent = "31",
+                          intensity_perc = 25)
+risk_map(risk = risk, staticmap = FALSE)
+```
